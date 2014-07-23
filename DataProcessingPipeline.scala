@@ -72,6 +72,12 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="Perform validation on the BAM files", fullName="validation", shortName="vs", required=false)
   var validation: Boolean = false
 
+  @Argument(doc="HaplotypeCaller: The minimum phred-scaled confidence threshold at which variants should be called", fullName="standard_min_confidence_threshold_for_calling", shortName="stand_call_conf", required=false)
+  var stand_call_conf: Double = 30.0
+
+  @Argument(doc="HaplotypeCaller: The minimum phred-scaled confidence threshold at which variants should be emitted (and filtered with LowQual if less than the calling threshold)", fullName="standard_min_confidence_threshold_for_emitting", shortName="stand_emit_conf", required=false)
+  var stand_emit_conf: Double = 10.0
+
 
   /****************************************************************************
   * Hidden Parameters
@@ -88,7 +94,6 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="Run the pipeline in test mode only", fullName = "test_mode", shortName = "test", required=false)
   var testMode: Boolean = false
 
-
   /****************************************************************************
   * Global Variables
   ****************************************************************************/
@@ -97,6 +102,10 @@ class DataProcessingPipeline extends QScript {
 
   var cleanModelEnum: ConsensusDeterminationModel = ConsensusDeterminationModel.USE_READS
 
+  // Variables for Haplotype Caller
+  var ReferenceConfidenceMode : String = "GVCF" // make sure that HaplotypeCaller is running in GVCF mode
+  var GATKVCFIndexType: String = "LINEAR" 
+  var variant_index_parameter: Int = 128000
 
 
 
@@ -256,6 +265,9 @@ class DataProcessingPipeline extends QScript {
       val dedupedBam = swapExt(bam, ".bam", ".clean.dedup.bam")
       val recalBam   = swapExt(bam, ".bam", ".clean.dedup.recal.bam")
 
+      // GVCF files
+      val outGVCF    = swapExt(bam, ".bam", ".g.gvcf")
+
       // Accessory files
       val targetIntervals = if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) {globalIntervals} else {swapExt(bam, ".bam", ".intervals")}
       val metricsFile     = swapExt(bam, ".bam", ".metrics")
@@ -282,7 +294,9 @@ class DataProcessingPipeline extends QScript {
           dedup(cleanedBam, dedupedBam, metricsFile),
           cov(dedupedBam, preRecalFile),
           recal(dedupedBam, preRecalFile, recalBam),
-          cov(recalBam, postRecalFile))
+          cov(recalBam, postRecalFile),
+          hapcall(recalBam, outGVCF)
+         )
 
 
       cohortList :+= recalBam
@@ -371,6 +385,23 @@ class DataProcessingPipeline extends QScript {
     this.jobName = queueLogDir + outBam + ".recalibration"
   }
 
+  case class hapcall (inBam: File, outGVCF: File) extends HaplotypeCaller with CommandLineGATKArgs {
+    this.input_file :+= inBam
+    this.out = outGVCF
+    if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
+    else if (qscript.intervals != null) this.intervals :+= qscript.intervals
+//    this.emitRefConfidence = emitRefConfidence
+//    this.stand_call_conf = stand_call_conf
+//    this.stand_emit_conf = stand_emit_conf
+//    this.ReferenceConfidenceMode = ReferenceConfidenceMode 
+//    this.GATKVCFIndexType = GATKVCFIndexType
+//    this.variant_index_parameter = variant_index_parameter
+
+    this.scatterCount = nContigs
+    this.isIntermediate = false
+    this.analysisName = queueLogDir + outGVCF + ".HaplotypeCaller"
+    this.jobName = queueLogDir + outGVCF + ".HaplotypeCaller"
+  }
 
 
   /****************************************************************************
