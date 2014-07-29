@@ -15,6 +15,9 @@ import org.broadinstitute.sting.queue.function.ListWriterFunction
 import org.broadinstitute.sting.commandline.Hidden
 import org.broadinstitute.sting.commandline
 
+//import org.broadinstitute.sting.gatk.walkers.haplotypecaller.HaplotypeCaller
+//import org.broadinstitute.sting.gatk.walkers.haplotypecaller.HaplotypeCaller.ReferenceConfidenceMode.GVCF
+
 class DataProcessingPipeline extends QScript {
   qscript =>
 
@@ -74,9 +77,11 @@ class DataProcessingPipeline extends QScript {
 
   @Argument(doc="HaplotypeCaller: The minimum phred-scaled confidence threshold at which variants should be called", fullName="standard_min_confidence_threshold_for_calling", shortName="stand_call_conf", required=false)
   var stand_call_conf: Double = 30.0
+  // Unused in GVCF mode
 
   @Argument(doc="HaplotypeCaller: The minimum phred-scaled confidence threshold at which variants should be emitted (and filtered with LowQual if less than the calling threshold)", fullName="standard_min_confidence_threshold_for_emitting", shortName="stand_emit_conf", required=false)
   var stand_emit_conf: Double = 10.0
+  // Unused in GVCF mode
 
 
   /****************************************************************************
@@ -103,9 +108,7 @@ class DataProcessingPipeline extends QScript {
   var cleanModelEnum: ConsensusDeterminationModel = ConsensusDeterminationModel.USE_READS
 
   // Variables for Haplotype Caller
-  var ReferenceConfidenceMode : String = "GVCF" // make sure that HaplotypeCaller is running in GVCF mode
   var GATKVCFIndexType: String = "LINEAR" 
-  var variant_index_parameter: Int = 128000
 
 
 
@@ -266,7 +269,7 @@ class DataProcessingPipeline extends QScript {
       val recalBam   = swapExt(bam, ".bam", ".clean.dedup.recal.bam")
 
       // GVCF files
-      val outGVCF    = swapExt(bam, ".bam", ".g.gvcf")
+      val outGVCF    = swapExt(bam, ".bam", ".g.vcf")
 
       // Accessory files
       val targetIntervals = if (cleaningModel == ConsensusDeterminationModel.KNOWNS_ONLY) {globalIntervals} else {swapExt(bam, ".bam", ".intervals")}
@@ -390,12 +393,14 @@ class DataProcessingPipeline extends QScript {
     this.out = outGVCF
     if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
-//    this.emitRefConfidence = emitRefConfidence
-//    this.stand_call_conf = stand_call_conf
-//    this.stand_emit_conf = stand_emit_conf
-//    this.ReferenceConfidenceMode = ReferenceConfidenceMode 
-//    this.GATKVCFIndexType = GATKVCFIndexType
-//    this.variant_index_parameter = variant_index_parameter
+
+    this.emitRefConfidence = org.broadinstitute.sting.gatk.walkers.haplotypecaller.HaplotypeCaller.ReferenceConfidenceMode.GVCF
+    this.variant_index_type = org.broadinstitute.sting.utils.variant.GATKVCFIndexType.LINEAR
+    this.variant_index_parameter = variant_index_parameter
+    this.variant_index_parameter = Some(128000)
+
+    // this.standard_min_confidence_threshold_for_calling = qscript.stand_call_conf
+    // this.standard_min_confidence_threshold_for_emitting = qscript.stand_emit_conf
 
     this.scatterCount = nContigs
     this.isIntermediate = false
