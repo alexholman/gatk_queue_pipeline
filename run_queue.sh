@@ -14,9 +14,9 @@ java -jar $APPS_PATH/Queue_current/Queue.jar \
   --dbsnpvqsr $DB_PATH/gatk/hg19/dbsnp_137.hg19.vcf \
   --graphviz graph_out.gv \
   --graphviz_scatter_gather sg_graph_out.gv \
-  --scatter_gather 10 \
-  -jobRunner GridEngine \
-  -startFromScratch \
+  --num_threads 30 \
+  --scatter_gather 1 \
   -run
 
-
+#  -jobRunner GridEngine \
+#  -startFromScratch \
