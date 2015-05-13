@@ -102,6 +102,9 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="GenotypeGVCFs: Maximum number of alternate alleles to genotype", fullName="max_alternate_alleles", shortName="maxAltAlleles", required=false)
   var max_alternate_alleles: Int = 20
 
+  @Argument(doc="nt or ntc for GATK: Number of threads to use", fullName="num_threads", shortName="nt", required=false)
+  var num_threads: Int = 1
+
 
 
   /****************************************************************************
@@ -393,6 +396,7 @@ class DataProcessingPipeline extends QScript {
     this.known ++= qscript.dbSNP
     if (indels != null)
       this.known ++= qscript.indels
+    this.num_threads = num_threads
     this.scatterCount = nContigs
     this.analysisName = queueLogDir + outIntervals + ".target"
     this.jobName = queueLogDir + outIntervals + ".target"
@@ -422,6 +426,7 @@ class DataProcessingPipeline extends QScript {
     if (!defaultPlatform.isEmpty) this.default_platform = defaultPlatform
     if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
+    this.num_cpu_threads_per_data_thread = num_threads
     this.scatterCount = nContigs
     this.analysisName = queueLogDir + outRecalFile + ".covariates"
     this.jobName = queueLogDir + outRecalFile + ".covariates"
@@ -434,6 +439,7 @@ class DataProcessingPipeline extends QScript {
     this.out = outBam
     if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
+    this.num_cpu_threads_per_data_thread = num_threads
     this.scatterCount = nContigs
     this.isIntermediate = false
     this.analysisName = queueLogDir + outBam + ".recalibration"
@@ -454,6 +460,7 @@ class DataProcessingPipeline extends QScript {
     // this.standard_min_confidence_threshold_for_calling = qscript.stand_call_conf
     // this.standard_min_confidence_threshold_for_emitting = qscript.stand_emit_conf
 
+    this.num_cpu_threads_per_data_thread = num_threads
     this.scatterCount = nContigs
     this.isIntermediate = false
     this.analysisName = queueLogDir + outGVCF + ".HaplotypeCaller"
