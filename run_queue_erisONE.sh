@@ -1,5 +1,5 @@
-APPS_PATH=/ifs/labs/cccb/projects/cccb/apps
-DB_PATH=/ifs/labs/cccb/projects/db
+APPS_PATH=/data/cccb/apps
+DB_PATH=/data/cccb/db
 
 java -jar $APPS_PATH/Queue_current/Queue.jar \
   -S ../gatk_queue_pipeline/ExomeGATKPipeline.scala \
