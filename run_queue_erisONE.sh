@@ -16,8 +16,8 @@ java -jar $APPS_PATH/Queue_current/Queue.jar \
   --graphviz_scatter_gather sg_graph_out.gv \
   --num_threads 1 \
   --scatter_gather 10 \
-  --jobRunner Lsf706 \
-  --job_queue medium \
+  -jobRunner Lsf706 \
+  -jobQueue medium \
   -run
 
 #  -startFromScratch \
