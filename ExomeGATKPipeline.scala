@@ -182,6 +182,8 @@ class DataProcessingPipeline extends QScript {
     sampleTable.toMap
   }
 
+
+/*
   // Rebuilds the Read Group string to give BWA
   def addReadGroups(inBam: File, outBam: File, samReader: SAMFileReader) {
     val readGroups = samReader.getFileHeader.getReadGroups
@@ -194,7 +196,9 @@ class DataProcessingPipeline extends QScript {
       index = index - 1
     }
   }
+*/
 
+/*
   // Takes a list of processed BAM files and realign them using the BWA option requested  (bwase or bwape).
   // Returns a list of realigned BAM files.
   def performAlignment(bams: Seq[File]): Seq[File] = {
@@ -232,6 +236,7 @@ class DataProcessingPipeline extends QScript {
     }
     realignedBams
   }
+*/
 
   def getIndelCleaningModel: ConsensusDeterminationModel = {
     if (cleaningModel == "KNOWNS_ONLY")
@@ -242,7 +247,7 @@ class DataProcessingPipeline extends QScript {
       ConsensusDeterminationModel.USE_READS
   }
 
-
+/*
   def revertBams(bams: Seq[File], removeAlignmentInformation: Boolean): Seq[File] = {
     var revertedBAMList: Seq[File] = Seq()
     for (bam <- bams)
@@ -255,7 +260,7 @@ class DataProcessingPipeline extends QScript {
     add(revert(bam, revertedBAM, removeAlignmentInformation))
     revertedBAM
   }
-
+*/
 
   /****************************************************************************
   * Main script
@@ -275,7 +280,9 @@ class DataProcessingPipeline extends QScript {
     if (nContigs < 0)
      nContigs = QScriptUtils.getNumberOfContigs(bams(0))
 
-    val realignedBAMs = if (useBWApe || useBWAse  || useBWAsw) {performAlignment(bams)} else {revertBams(bams, false)}
+//  trying to strip out the unneeded realignment steps
+//    val realignedBAMs = if (useBWApe || useBWAse  || useBWAsw) {performAlignment(bams)} else {revertBams(bams, false)}
+    val realignedBAMs = bams
 
     // generate a BAM file per sample joining all per lane files if necessary
     val sampleBAMFiles: Map[String, Seq[File]] = createSampleFiles(bams, realignedBAMs)
@@ -626,6 +633,7 @@ class DataProcessingPipeline extends QScript {
   }
 
 
+
   case class addReadGroup (inBam: File, outBam: File, readGroup: ReadGroup) extends AddOrReplaceReadGroups with ExternalCommonArgs {
     this.input :+= inBam
     this.output = outBam
@@ -640,6 +648,7 @@ class DataProcessingPipeline extends QScript {
     this.jobName = queueLogDir + outBam + ".rg"
   }
 
+/* 
   case class revert (inBam: File, outBam: File, removeAlignmentInfo: Boolean) extends RevertSam with ExternalCommonArgs {
     this.output = outBam
     this.input :+= inBam
@@ -648,14 +657,18 @@ class DataProcessingPipeline extends QScript {
     this.analysisName = queueLogDir + outBam + "revert"
     this.jobName = queueLogDir + outBam + ".revert"
   }
+*/
 
+/*
   case class convertToFastQ (inBam: File, outFQ: File) extends SamToFastq with ExternalCommonArgs {
     this.input :+= inBam
     this.fastq = outFQ
     this.analysisName = queueLogDir + outFQ + "convert_to_fastq"
     this.jobName = queueLogDir + outFQ + ".convert_to_fastq"
   }
+*/
 
+/*
   case class bwa_aln_se (inBam: File, outSai: File) extends CommandLineFunction with ExternalCommonArgs {
     @Input(doc="bam file to be aligned") var bam = inBam
     @Output(doc="output sai file") var sai = outSai
@@ -700,7 +713,7 @@ class DataProcessingPipeline extends QScript {
     this.analysisName = queueLogDir + outBam + ".bwasw"
     this.jobName = queueLogDir + outBam + ".bwasw"
   }
-
+*/
 
   case class writeList(inBams: Seq[File], outBamList: File) extends ListWriterFunction {
     this.inputFiles = inBams
