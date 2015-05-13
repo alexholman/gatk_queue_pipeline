@@ -2,7 +2,7 @@ APPS_PATH=/ifs/labs/cccb/projects/cccb/apps
 DB_PATH=/ifs/labs/cccb/projects/db
 
 java -jar $APPS_PATH/Queue_current/Queue.jar \
-  -S ../gatk_queue_pipeline/DataProcessingPipeline.scala \
+  -S ../gatk_queue_pipeline/ExomeGATKPipeline.scala \
   --dbsnp $DB_PATH/gatk/hg19/dbsnp_137.hg19.vcf \
   --reference $DB_PATH/gatk/hg19/ucsc.hg19.fasta \
   -L two_region_list.list \
