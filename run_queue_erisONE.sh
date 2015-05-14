@@ -16,7 +16,7 @@ java -jar $APPS_PATH/Queue_current/Queue.jar \
   --snpEff_genome hg19 \
   --graphviz graph_out.gv \
   --graphviz_scatter_gather sg_graph_out.gv \
-  --num_threads 1 \
+  --num_threads 4 \
   --scatter_gather 10 \
   -jobRunner Lsf706 \
   -retry 3 \

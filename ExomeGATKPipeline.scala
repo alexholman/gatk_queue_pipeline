@@ -113,6 +113,11 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="MarkDuplicates memory limit", fullName="markDuplicates_memLimit", shortName="md_mem", required=false)
   var markDuplicates_memLimit: Int = 4
 
+
+  @Argument(doc="Global memory limit", fullName="memoryLimit", shortName="memoryLimit", required=false)
+  var memoryLimit: Int = 4
+
+
   @Argument(doc="snpEff genome to use", fullName="snpEff_genome", shortName="snpEff_genome", required=false)
   var snpEff_genome: String = "hg19"
 
@@ -402,13 +407,16 @@ class DataProcessingPipeline extends QScript {
 
   // General arguments to non-GATK tools
   trait ExternalCommonArgs extends CommandLineFunction {
-    this.memoryLimit = 4
+    this.memoryLimit = memoryLimit
     this.isIntermediate = true
   }
 
   // General arguments to GATK walkers
   trait CommandLineGATKArgs extends CommandLineGATK with ExternalCommonArgs {
     this.reference_sequence = qscript.reference
+    this.memoryLimit = memoryLimit
+    this.num_threads = num_threads
+    this.num_cpu_threads_per_data_thread = num_threads
   }
 
   trait SAMargs extends PicardBamFunction with ExternalCommonArgs {
@@ -423,7 +431,6 @@ class DataProcessingPipeline extends QScript {
     this.known ++= qscript.dbSNP
     if (indels != null)
       this.known ++= qscript.indels
-    this.num_threads = num_threads
     this.scatterCount = nContigs
     this.analysisName = queueLogDir + outIntervals + ".target"
     this.jobName = queueLogDir + outIntervals + ".target"
@@ -453,7 +460,6 @@ class DataProcessingPipeline extends QScript {
     if (!defaultPlatform.isEmpty) this.default_platform = defaultPlatform
     if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
-    this.num_cpu_threads_per_data_thread = num_threads
     this.scatterCount = nContigs
     this.analysisName = queueLogDir + outRecalFile + ".covariates"
     this.jobName = queueLogDir + outRecalFile + ".covariates"
@@ -466,7 +472,6 @@ class DataProcessingPipeline extends QScript {
     this.out = outBam
     if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
-    this.num_cpu_threads_per_data_thread = num_threads
     this.scatterCount = nContigs
     this.isIntermediate = false
     this.analysisName = queueLogDir + outBam + ".recalibration"
@@ -541,6 +546,7 @@ class DataProcessingPipeline extends QScript {
     this.isIntermediate = false
     this.analysisName = queueLogDir + outVcf + ".varannotator"
     this.jobName = queueLogDir + outVcf + ".varannotator"
+
     this.scatterCount = nContigs
   }
 
@@ -603,7 +609,6 @@ class DataProcessingPipeline extends QScript {
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
 
     this.scatterCount = nContigs
-//    this.nt = gatkOptions.nbrOfThreads
     this.isIntermediate = false
     this.analysisName = queueLogDir + outVCF + "ApplyRecal_" + mode
     this.jobName = queueLogDir + outVCF + "ApplyRecal_" + mode
@@ -621,7 +626,6 @@ class DataProcessingPipeline extends QScript {
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
 
     this.scatterCount = nContigs
-//    this.nt = gatkOptions.nbrOfThreads
     this.isIntermediate = false
     this.analysisName = queueLogDir + outVCF + "ApplyRecal_" + mode
     this.jobName = queueLogDir + outVCF + "ApplyRecal_" + mode
