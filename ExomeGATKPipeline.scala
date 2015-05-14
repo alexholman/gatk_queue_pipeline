@@ -105,6 +105,11 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="nt or ntc for GATK: Number of threads to use", fullName="num_threads", shortName="nt", required=false)
   var num_threads: Int = 1
 
+  @Argument(doc="MarkDuplicates memory limit", fullName="markDuplicates_memLimit", shortName="md_mem", required=false)
+  var markDuplicates_memLimit: Int = 4
+
+
+
 
 
   /****************************************************************************
@@ -603,7 +608,7 @@ class DataProcessingPipeline extends QScript {
     this.input :+= inBam
     this.output = outBam
     this.metrics = metricsFile
-    this.memoryLimit = 8
+    this.memoryLimit = markDuplicates_memLimit
     this.analysisName = queueLogDir + outBam + ".dedup"
     this.jobName = queueLogDir + outBam + ".dedup"
   }
