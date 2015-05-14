@@ -86,10 +86,10 @@ class DataProcessingPipeline extends QScript {
 
   @Argument(doc="Decompose input BAM file and fully realign it using BWA SW", fullName="use_bwa_sw", shortName="bwasw", required=false)
   var useBWAsw: Boolean = false
-
+/*
   @Argument(doc="Number of threads BWA should use", fullName="bwa_threads", shortName="bt", required=false)
   var bwaThreads: Int = 1
-
+*/
   @Argument(doc="Perform validation on the BAM files", fullName="validation", shortName="vs", required=false)
   var validation: Boolean = false
 
@@ -603,7 +603,7 @@ class DataProcessingPipeline extends QScript {
     this.input :+= inBam
     this.output = outBam
     this.metrics = metricsFile
-    this.memoryLimit = 16
+    this.memoryLimit = 8
     this.analysisName = queueLogDir + outBam + ".dedup"
     this.jobName = queueLogDir + outBam + ".dedup"
   }
@@ -648,7 +648,7 @@ class DataProcessingPipeline extends QScript {
     this.jobName = queueLogDir + outBam + ".rg"
   }
 
-/* 
+/*
   case class revert (inBam: File, outBam: File, removeAlignmentInfo: Boolean) extends RevertSam with ExternalCommonArgs {
     this.output = outBam
     this.input :+= inBam
