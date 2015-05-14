@@ -363,8 +363,8 @@ class DataProcessingPipeline extends QScript {
 	var combinedGVCFlist: Seq[File] = Seq()
 	combinedGVCFlist :+= combinedGVCF
 	
-	val snpEffVCF			= swapExt(rawVCF, ".vcf", ".snpEff.vcf")
-	val VCFvarAnnotate		= swapExt(rawVCF, ".vcf", ".varAnnSnpEff.vcf")
+//	val snpEffVCF			= swapExt(rawVCF, ".vcf", ".snpEff.vcf")
+	val VCFvarAnnotate		= swapExt(rawVCF, ".vcf", ".varAnn.vcf")
 
 	val SNPrecalVCF			= swapExt(VCFvarAnnotate, ".vcf", ".snpRecal.vcf")
 	val SNPrecalRecal		= swapExt(SNPrecalVCF, ".vcf", ".recal")
@@ -378,13 +378,8 @@ class DataProcessingPipeline extends QScript {
 
 	add( 
 		combineGVCFs(gVCFlist, combinedGVCF),
-		genotypeGVCFs(combinedGVCFlist, rawVCF)
-    )
-	
-	annotate_snpEff(rawVCF, snpEffVCF)
-
-	add( 
-		varannotator(rawVCF, snpEffVCF, VCFvarAnnotate),
+		genotypeGVCFs(combinedGVCFlist, rawVCF),
+		varannotator(rawVCF, VCFvarAnnotate),
 		VQSRsnp(VCFvarAnnotate, SNPrecalRecal, SNPrecalTranches, SNPrecalRPlots),
 		applyRecalSNP(VCFvarAnnotate, SNPrecalTranches, SNPrecalRecal, 99.9, SNPrecalVCF),
 		VQSRindel(SNPrecalVCF, INDELrecalRecal, INDELrecalTranches, INDELrecalRPlots),
@@ -535,14 +530,14 @@ class DataProcessingPipeline extends QScript {
   }
 
 
-  case class varannotator (inVcf: File, inSnpEffFile: File, outVcf: File) extends VariantAnnotator  {
+  case class varannotator (inVcf: File, outVcf: File) extends VariantAnnotator  {
     this.variant = inVcf
-    this.snpEffFile = inSnpEffFile
+//    this.snpEffFile = inSnpEffFile
     this.out = outVcf
     this.alwaysAppendDbsnpId = true
-    this.D = dbSNPvqsr
+    this.dbsnp = dbSNPvqsr
     this.R = reference
-    this.A = Seq("SnpEff")
+    this.annotation = Seq("GenotypeSummaries", "VariantType")
     this.isIntermediate = false
     this.analysisName = queueLogDir + outVcf + ".varannotator"
     this.jobName = queueLogDir + outVcf + ".varannotator"
@@ -763,6 +758,17 @@ class DataProcessingPipeline extends QScript {
 
 
 
+/*
+  class annotate_snpEff(inVCF: File, outVCF: File) extends CommandLineFunction {
+    @Input(doc="vcf to annotate") var inVCF: File = _
+    @Output(doc="indexed VCF") 
+    
+    def commandLine = "myScript.sh hello world"
+
+  } // close class annotate_snpEff
+
+
+
   def annotate_snpEff(inVcf: File, outVCF: File) {
         val eff = new SnpEff
         eff.config = new File(snpEff_path + "/snpEff.config")
@@ -781,7 +787,7 @@ class DataProcessingPipeline extends QScript {
 
 // swapExt(eff.inVcf, "vcf", "snpEff.vcf")
 
-
+*/
 
 
 
