@@ -12,6 +12,8 @@ java -jar $APPS_PATH/Queue_current/Queue.jar \
   --thousandGenomes $DB_PATH/gatk/hg19/1000G_phase1.snps.high_confidence.hg19.vcf \
   --mills $DB_PATH/gatk/hg19/Mills_and_1000G_gold_standard.indels.hg19.vcf \
   --dbsnpvqsr $DB_PATH/gatk/hg19/dbsnp_137.hg19.vcf \
+  --snpEff_path $APPS_PATH/snpEff_current/ \
+  --snpEff_genome hg19 \
   --graphviz graph_out.gv \
   --graphviz_scatter_gather sg_graph_out.gv \
   --num_threads 1 \

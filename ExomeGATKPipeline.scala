@@ -16,6 +16,8 @@ import org.broadinstitute.gatk.queue.function.ListWriterFunction
 import org.broadinstitute.gatk.utils.commandline.Hidden
 import org.broadinstitute.gatk.utils.commandline 
 
+import org.broadinstitute.gatk.queue.extensions.snpeff._
+
 //import org.broadinstitute.gatk.tools.walkers.haplotypecaller.HaplotypeCaller
 //import org.broadinstitute.gatk.tools.walkers.haplotypecaller.HaplotypeCaller.ReferenceConfidenceMode.GVCF
 
@@ -36,7 +38,7 @@ class DataProcessingPipeline extends QScript {
   @Input(doc="dbsnp ROD to use (must be in VCF format)", fullName="dbsnp", shortName="D", required=true)
   var dbSNP: Seq[File] = Seq()
 
-  @Input(doc="dbsnp file for VQSR training", fullName="dbsnpvqsr", shortName="dbsnpvqsr", required=true)
+  @Input(doc="dbsnp file for VariantAnnotator and VQSR training", fullName="dbsnpvqsr", shortName="dbsnpvqsr", required=true)
   var dbSNPvqsr: File = _
 
   @Input(doc="hapmap training set for VQSR", fullName="hapmap", shortName="hapmap", required=true)
@@ -50,6 +52,9 @@ class DataProcessingPipeline extends QScript {
 
   @Input(doc="Mills and 1000genomes gold standard indels", fullName="mills", shortName="mills", required=true)
   var mills: File = _
+
+  @Argument(doc="Path to snpEff directory", fullName="snpEff_path", shortName="snpEff_path", required=true)
+  var snpEff_path: String = _
 
 
 
@@ -108,7 +113,8 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="MarkDuplicates memory limit", fullName="markDuplicates_memLimit", shortName="md_mem", required=false)
   var markDuplicates_memLimit: Int = 4
 
-
+  @Argument(doc="snpEff genome to use", fullName="snpEff_genome", shortName="snpEff_genome", required=false)
+  var snpEff_genome: String = "hg19"
 
 
 
@@ -351,8 +357,11 @@ class DataProcessingPipeline extends QScript {
 	val rawVCF				= qscript.outputDir + qscript.projectName + ".vcf"
 	var combinedGVCFlist: Seq[File] = Seq()
 	combinedGVCFlist :+= combinedGVCF
+	
+	val snpEffVCF			= swapExt(rawVCF, ".vcf", ".snpEff.vcf")
+	val VCFvarAnnotate		= swapExt(rawVCF, ".vcf", ".varAnnSnpEff.vcf")
 
-	val SNPrecalVCF			= swapExt(rawVCF, ".vcf", ".snpRecal.vcf")
+	val SNPrecalVCF			= swapExt(VCFvarAnnotate, ".vcf", ".snpRecal.vcf")
 	val SNPrecalRecal		= swapExt(SNPrecalVCF, ".vcf", ".recal")
 	val SNPrecalTranches	= swapExt(SNPrecalVCF, ".vcf", ".tranches")
 	val SNPrecalRPlots		= swapExt(SNPrecalVCF, ".vcf", ".plots.R")
@@ -362,15 +371,21 @@ class DataProcessingPipeline extends QScript {
 	val INDELrecalTranches		= swapExt(INDELrecalVCF, ".vcf", ".tranches")
 	val INDELrecalRPlots		= swapExt(INDELrecalVCF, ".vcf", ".plots.R")
 
-
 	add( 
 		combineGVCFs(gVCFlist, combinedGVCF),
-		genotypeGVCFs(combinedGVCFlist, rawVCF),
-		VQSRsnp(rawVCF, SNPrecalRecal, SNPrecalTranches, SNPrecalRPlots),
-		applyRecalSNP(rawVCF, SNPrecalTranches, SNPrecalRecal, 99.9, SNPrecalVCF),
+		genotypeGVCFs(combinedGVCFlist, rawVCF)
+    )
+	
+	annotate_snpEff(rawVCF, snpEffVCF)
+
+	add( 
+		varannotator(rawVCF, snpEffVCF, VCFvarAnnotate),
+		VQSRsnp(VCFvarAnnotate, SNPrecalRecal, SNPrecalTranches, SNPrecalRPlots),
+		applyRecalSNP(VCFvarAnnotate, SNPrecalTranches, SNPrecalRecal, 99.9, SNPrecalVCF),
 		VQSRindel(SNPrecalVCF, INDELrecalRecal, INDELrecalTranches, INDELrecalRPlots),
 		applyRecalINDEL(SNPrecalVCF, INDELrecalTranches, INDELrecalRecal, 99.0, INDELrecalVCF)
 	)
+
 
     // output a BAM list with all the processed per sample files
     val cohortFile = new File(qscript.outputDir + qscript.projectName + ".cohort.list")
@@ -512,6 +527,21 @@ class DataProcessingPipeline extends QScript {
     this.analysisName = queueLogDir + outVCF + ".GenotypeGVCFs"
     this.jobName = queueLogDir + outVCF + ".GenotypeGVCFs"
 
+  }
+
+
+  case class varannotator (inVcf: File, inSnpEffFile: File, outVcf: File) extends VariantAnnotator  {
+    this.variant = inVcf
+    this.snpEffFile = inSnpEffFile
+    this.out = outVcf
+    this.alwaysAppendDbsnpId = true
+    this.D = dbSNPvqsr
+    this.R = reference
+    this.A = Seq("SnpEff")
+    this.isIntermediate = false
+    this.analysisName = queueLogDir + outVcf + ".varannotator"
+    this.jobName = queueLogDir + outVcf + ".varannotator"
+    this.scatterCount = nContigs
   }
 
 
@@ -726,5 +756,36 @@ class DataProcessingPipeline extends QScript {
     this.analysisName = queueLogDir + outBamList + ".bamList"
     this.jobName = queueLogDir + outBamList + ".bamList"
   }
+
+
+
+  def annotate_snpEff(inVcf: File, outVCF: File) {
+        val eff = new SnpEff
+        eff.config = new File(snpEff_path + "/snpEff.config")
+        eff.genomeVersion = snpEff_genome
+
+        eff.inVcf = inVcf
+        var snpEffout: File = outVCF
+        eff.outVcf = swapExt(outVCF, "vcf", "out")
+
+        eff.javaClasspath = List(snpEff_path)
+        eff.jarFile = snpEff_path + "/snpEff.jar"
+
+        add(eff)
+//        add(varannotator(eff.inVcf,eff.outVcf,snpEffout))
+  } // close def annotate_snpEff
+
+// swapExt(eff.inVcf, "vcf", "snpEff.vcf")
+
+
+
+
+
+
 }
+
+
+
+
+
 
