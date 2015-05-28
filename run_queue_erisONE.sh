@@ -19,7 +19,7 @@ java -jar $APPS_PATH/Queue_current/Queue.jar \
   --num_threads 4 \
   --scatter_gather 10 \
   -jobRunner Lsf706 \
-  -retry 3 \
+  -retry 2 \
   -jobQueue medium \
   -run
 
