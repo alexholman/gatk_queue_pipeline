@@ -361,10 +361,6 @@ class DataProcessingPipeline extends QScript {
     } // close for each BAM
 
 
-<<<<<<< HEAD
-=======
-// java.lang.System.exit(0)
->>>>>>> d0287eb1595c0a704518351c014054375a6bf1d2
 
 	// Now run the post processing steps after the GVCF stage
 	if (complete_run){
