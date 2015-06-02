@@ -117,10 +117,11 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="Global memory limit", fullName="memoryLimit", shortName="memoryLimit", required=false)
   var memoryLimit: Int = 4
 
-
   @Argument(doc="snpEff genome to use", fullName="snpEff_genome", shortName="snpEff_genome", required=false)
   var snpEff_genome: String = "hg19"
 
+  @Argument(doc="Run fully through GVCF to VCF creation and VCF recalibration", fullName="complete_run", shortName="complete_run", required=false)
+  var complete_run: Boolean = true
 
 
   /****************************************************************************
@@ -360,43 +361,48 @@ class DataProcessingPipeline extends QScript {
     } // close for each BAM
 
 
+<<<<<<< HEAD
+=======
 // java.lang.System.exit(0)
+>>>>>>> d0287eb1595c0a704518351c014054375a6bf1d2
 
 	// Now run the post processing steps after the GVCF stage
+	if (complete_run){
 
-	// VCF files
-	val combinedGVCF		= qscript.outputDir + qscript.projectName + ".g.vcf"
-	val rawVCF				= qscript.outputDir + qscript.projectName + ".vcf"
-	var combinedGVCFlist: Seq[File] = Seq()
-	combinedGVCFlist :+= combinedGVCF
+		// VCF files
+		val combinedGVCF		= qscript.outputDir + qscript.projectName + ".g.vcf"
+		val rawVCF				= qscript.outputDir + qscript.projectName + ".vcf"
+		var combinedGVCFlist: Seq[File] = Seq()
+		combinedGVCFlist :+= combinedGVCF
 	
-//	val snpEffVCF			= swapExt(rawVCF, ".vcf", ".snpEff.vcf")
-	val VCFvarAnnotate		= swapExt(rawVCF, ".vcf", ".varAnn.vcf")
+	//	val snpEffVCF			= swapExt(rawVCF, ".vcf", ".snpEff.vcf")
+		val VCFvarAnnotate		= swapExt(rawVCF, ".vcf", ".varAnn.vcf")
 
-	val SNPrecalVCF			= swapExt(VCFvarAnnotate, ".vcf", ".snpRecal.vcf")
-	val SNPrecalRecal		= swapExt(SNPrecalVCF, ".vcf", ".recal")
-	val SNPrecalTranches	= swapExt(SNPrecalVCF, ".vcf", ".tranches")
-	val SNPrecalRPlots		= swapExt(SNPrecalVCF, ".vcf", ".plots.R")
+		val SNPrecalVCF			= swapExt(VCFvarAnnotate, ".vcf", ".snpRecal.vcf")
+		val SNPrecalRecal		= swapExt(SNPrecalVCF, ".vcf", ".recal")
+		val SNPrecalTranches	= swapExt(SNPrecalVCF, ".vcf", ".tranches")
+		val SNPrecalRPlots		= swapExt(SNPrecalVCF, ".vcf", ".plots.R")
 
-	val INDELrecalVCF			= swapExt(SNPrecalVCF, ".vcf", ".indelRecal.vcf")
-	val INDELrecalRecal			= swapExt(INDELrecalVCF, ".vcf", ".recal")
-	val INDELrecalTranches		= swapExt(INDELrecalVCF, ".vcf", ".tranches")
-	val INDELrecalRPlots		= swapExt(INDELrecalVCF, ".vcf", ".plots.R")
+		val INDELrecalVCF			= swapExt(SNPrecalVCF, ".vcf", ".indelRecal.vcf")
+		val INDELrecalRecal			= swapExt(INDELrecalVCF, ".vcf", ".recal")
+		val INDELrecalTranches		= swapExt(INDELrecalVCF, ".vcf", ".tranches")
+		val INDELrecalRPlots		= swapExt(INDELrecalVCF, ".vcf", ".plots.R")
 
-	add( 
-		combineGVCFs(gVCFlist, combinedGVCF),
-		genotypeGVCFs(combinedGVCFlist, rawVCF),
-		varannotator(rawVCF, VCFvarAnnotate),
-		VQSRsnp(VCFvarAnnotate, SNPrecalRecal, SNPrecalTranches, SNPrecalRPlots),
-		applyRecalSNP(VCFvarAnnotate, SNPrecalTranches, SNPrecalRecal, 99.9, SNPrecalVCF),
-		VQSRindel(SNPrecalVCF, INDELrecalRecal, INDELrecalTranches, INDELrecalRPlots),
-		applyRecalINDEL(SNPrecalVCF, INDELrecalTranches, INDELrecalRecal, 99.0, INDELrecalVCF)
-	)
+		add( 
+			combineGVCFs(gVCFlist, combinedGVCF),
+			genotypeGVCFs(combinedGVCFlist, rawVCF),
+			varannotator(rawVCF, VCFvarAnnotate),
+			VQSRsnp(VCFvarAnnotate, SNPrecalRecal, SNPrecalTranches, SNPrecalRPlots),
+			applyRecalSNP(VCFvarAnnotate, SNPrecalTranches, SNPrecalRecal, 99.9, SNPrecalVCF),
+			VQSRindel(SNPrecalVCF, INDELrecalRecal, INDELrecalTranches, INDELrecalRPlots),
+			applyRecalINDEL(SNPrecalVCF, INDELrecalTranches, INDELrecalRecal, 99.0, INDELrecalVCF)
+		)
 
 
-    // output a BAM list with all the processed per sample files
-    val cohortFile = new File(qscript.outputDir + qscript.projectName + ".cohort.list")
-    add(writeList(cohortList, cohortFile))
+	    // output a BAM list with all the processed per sample files
+	    val cohortFile = new File(qscript.outputDir + qscript.projectName + ".cohort.list")
+	    add(writeList(cohortList, cohortFile))
+	}
   }
 
 
