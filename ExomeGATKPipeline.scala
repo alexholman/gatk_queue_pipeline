@@ -120,8 +120,8 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="snpEff genome to use", fullName="snpEff_genome", shortName="snpEff_genome", required=false)
   var snpEff_genome: String = "hg19"
 
-  @Argument(doc="Run fully through GVCF to VCF creation and VCF recalibration", fullName="complete_run", shortName="complete_run", required=false)
-  var complete_run: Boolean = true
+  @Argument(doc="Run fully through GVCF to VCF creation and VCF recalibration", fullName="complete_run", shortName="complete", required=false)
+  var complete_run: String = "true"
 
 
   /****************************************************************************
@@ -363,7 +363,7 @@ class DataProcessingPipeline extends QScript {
 
 
 	// Now run the post processing steps after the GVCF stage
-	if (complete_run){
+	if (complete_run=="true"){
 
 		// VCF files
 		val combinedGVCF		= qscript.outputDir + qscript.projectName + ".g.vcf"
