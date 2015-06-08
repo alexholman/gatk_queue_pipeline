@@ -384,6 +384,8 @@ class DataProcessingPipeline extends QScript {
 		val INDELrecalTranches		= swapExt(INDELrecalVCF, ".vcf", ".tranches")
 		val INDELrecalRPlots		= swapExt(INDELrecalVCF, ".vcf", ".plots.R")
 
+		val FilteredVCF				= swapExt(INDELrecalVCF, ".vcf", ".filtered.vcf")
+
 		add( 
 			combineGVCFs(gVCFlist, combinedGVCF),
 			genotypeGVCFs(combinedGVCFlist, rawVCF),
@@ -392,6 +394,7 @@ class DataProcessingPipeline extends QScript {
 			applyRecalSNP(VCFvarAnnotate, SNPrecalTranches, SNPrecalRecal, 99.9, SNPrecalVCF),
 			VQSRindel(SNPrecalVCF, INDELrecalRecal, INDELrecalTranches, INDELrecalRPlots),
 			applyRecalINDEL(SNPrecalVCF, INDELrecalTranches, INDELrecalRecal, 99.0, INDELrecalVCF)
+			selectFilterPass(INDELrecalVCF, FilteredVCF)
 		)
 
 
@@ -635,6 +638,21 @@ class DataProcessingPipeline extends QScript {
     this.analysisName = queueLogDir + outVCF + "ApplyRecal_" + mode
     this.jobName = queueLogDir + outVCF + "ApplyRecal_" + mode
   }
+
+  case class selectFilterPass (inVCF: File, outVCF: File) extends SelectVariants with CommandLineGATKArgs {
+    this.input :+= inVCF
+    this.excludeFiltered = "true"
+    this.out = outVCF
+
+    if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
+    else if (qscript.intervals != null) this.intervals :+= qscript.intervals
+
+    this.scatterCount = nContigs
+    this.isIntermediate = false
+    this.analysisName = queueLogDir + outVCF + "SelectFilterPass_" + mode
+    this.jobName = queueLogDir + outVCF + "SelectFilterPass_" + mode
+  }
+
 
 
 
