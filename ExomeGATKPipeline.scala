@@ -570,8 +570,7 @@ class DataProcessingPipeline extends QScript {
     this.resource :+= new TaggedFile(omni, "known=false,training=true,truth=true,prior=12.0")
     this.resource :+= new TaggedFile(thousandGenomes, "known=false,training=true,truth=false,prior=10.0")
     this.resource :+= new TaggedFile(dbSNPvqsr, "known=true,training=false,truth=false,prior=2.0")
-    this.use_annotation ++= List("QD", "ReadPosRankSum", "FS", "InbreedingCoeff")
-
+    this.use_annotation ++= List("QD", "MQRankSum", "ReadPosRankSum", "FS", "InbreedingCoeff")
     if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
 
@@ -592,7 +591,8 @@ class DataProcessingPipeline extends QScript {
     this.tranche ++= List("100.0", "99.9", "99.0", "90.0")
     this.resource :+= new TaggedFile(mills, "known=false,training=true,truth=true,prior=12.0")
     this.resource :+= new TaggedFile(dbSNPvqsr, "known=true,training=false,truth=false,prior=2.0")
-	this.use_annotation ++= List("QD", "DP", "FS", "ReadPosRankSum", "InbreedingCoeff")
+    this.use_annotation ++= List("QD", "ReadPosRankSum", "FS", "InbreedingCoeff")
+    this.maxGaussians = 4
 
     if (!qscript.intervalString.isEmpty) this.intervalsString ++= Seq(qscript.intervalString)
     else if (qscript.intervals != null) this.intervals :+= qscript.intervals
