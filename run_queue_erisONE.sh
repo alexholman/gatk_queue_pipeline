@@ -4,6 +4,8 @@ JAVA_PATH=$APPS_PATH/java_current/bin
 
 BAMS_LIST=$1
 REGIONS=$2
+PED=$3
+
 LOG=run_queue.$(basename $BAMS_LIST .txt).log
 
 $JAVA_PATH/java -jar $APPS_PATH/Queue_current/Queue.jar \
@@ -21,7 +23,8 @@ $JAVA_PATH/java -jar $APPS_PATH/Queue_current/Queue.jar \
   --snpEff_genome hg19 \
   --graphviz graph_out.gv \
   --graphviz_scatter_gather sg_graph_out.gv \
-  --num_threads 4 \
+  --pedigree $PED \
+  --num_threads 1 \
   --scatter_gather 50 \
   -jobRunner Lsf706 \
   -retry 3 \

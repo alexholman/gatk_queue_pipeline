@@ -123,6 +123,12 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="Run fully through GVCF to VCF creation and VCF recalibration", fullName="complete_run", shortName="complete", required=false)
   var complete_run: String = "true"
 
+  @Input(doc="Pedigree file", fullName="pedigree", shortName="ped", required=false)
+  var pedigree: File = _
+
+  @Argument(doc="Amount of padding in bp to add to each interval", fullName="interval_padding", shortName="ip", required=false)
+  var interval_padding: Int = 100
+
 
   /****************************************************************************
   * Hidden Parameters
@@ -424,6 +430,8 @@ class DataProcessingPipeline extends QScript {
     this.memoryLimit = memoryLimit
     this.num_threads = num_threads
     this.num_cpu_threads_per_data_thread = num_threads
+    this.interval_padding = interval_padding
+    this.pedigree = pedigree
   }
 
   trait SAMargs extends PicardBamFunction with ExternalCommonArgs {
@@ -550,11 +558,11 @@ class DataProcessingPipeline extends QScript {
     this.alwaysAppendDbsnpId = true
     this.dbsnp = dbSNPvqsr
     this.R = reference
-    this.annotation = Seq("GenotypeSummaries", "VariantType")
+//    this.annotation = Seq("GenotypeSummaries", "VariantType")
+    this.annotation = Seq("GenotypeSummaries", "VariantType", "InbreedingCoeff", "TransmissionDisequilibriumTest", "PossibleDeNovo")
     this.isIntermediate = false
     this.analysisName = queueLogDir + outVcf + ".varannotator"
     this.jobName = queueLogDir + outVcf + ".varannotator"
-
     this.scatterCount = nContigs
   }
 

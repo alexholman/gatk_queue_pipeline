@@ -1,7 +1,10 @@
-APPS_PATH=/ifs/labs/cccb/projects/cccb/apps
+# APPS_PATH=/ifs/labs/cccb/projects/cccb/apps
 DB_PATH=/ifs/labs/cccb/projects/db
 INPUT_BAMS=$1
 REGIONS=$2
+PED=$3
+
+LOG=run_queue.$(basename $BAMS_LIST .txt).log
 
 java -jar $APPS_PATH/Queue_current/Queue.jar \
   -S $APPS_PATH/gatk_queue_pipeline/ExomeGATKPipeline.scala \
@@ -16,13 +19,15 @@ java -jar $APPS_PATH/Queue_current/Queue.jar \
   --dbsnpvqsr $DB_PATH/gatk/hg19/dbsnp_137.hg19.vcf \
   --snpEff_path $APPS_PATH/snpEff_current/ \
   --snpEff_genome hg19 \
+  --pedigree $PED \
   --graphviz graph_out.gv \
   --graphviz_scatter_gather sg_graph_out.gv \
   --num_threads 4 \
   --scatter_gather 10 \
   -jobRunner GridEngine \
   -retry 2 \
-  -run
+  -run \
+>> $LOG 2>&1
 
 #  -jobQueue medium \
 #  -startFromScratch \
