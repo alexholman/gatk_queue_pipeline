@@ -4,7 +4,7 @@ INPUT_BAMS=$1
 REGIONS=$2
 PED=$3
 
-LOG=run_queue.$(basename $BAMS_LIST .txt).log
+LOG=run_queue.$(basename $INPUT_BAMS .list).log
 
 java -jar $APPS_PATH/Queue_current/Queue.jar \
   -S $APPS_PATH/gatk_queue_pipeline/ExomeGATKPipeline.scala \
