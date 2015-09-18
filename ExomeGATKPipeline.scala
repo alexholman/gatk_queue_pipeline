@@ -125,6 +125,7 @@ class DataProcessingPipeline extends QScript {
 
   @Input(doc="Pedigree file", fullName="pedigree", shortName="ped", required=false)
   var pedigree: File = _
+//  var pedigree: Seq[File] = Seq()
 
   @Argument(doc="Amount of padding in bp to add to each interval", fullName="interval_padding", shortName="ip", required=false)
   var interval_padding: Int = 100
@@ -445,7 +446,10 @@ class DataProcessingPipeline extends QScript {
     this.num_threads = num_threads
     this.num_cpu_threads_per_data_thread = num_threads
     this.interval_padding = interval_padding
-    this.pedigree = pedigree
+//    this.pedigree = pedigree
+    this.pedigree :+= pedigree
+//    this.pedigree = List(pedigree)
+    this.pedigreeValidationType = org.broadinstitute.gatk.engine.samples.PedigreeValidationType.SILENT
   }
 
   trait SAMargs extends PicardBamFunction with ExternalCommonArgs {
@@ -561,11 +565,10 @@ class DataProcessingPipeline extends QScript {
     this.isIntermediate = true
     this.analysisName = queueLogDir + outVCF + ".GenotypeGVCFs"
     this.jobName = queueLogDir + outVCF + ".GenotypeGVCFs"
-
   }
 
 
-  case class varannotator (inVcf: File, outVcf: File) extends VariantAnnotator  {
+  case class varannotator (inVcf: File, outVcf: File) extends VariantAnnotator with CommandLineGATKArgs  {
     this.variant = inVcf
 //    this.snpEffFile = inSnpEffFile
     this.out = outVcf
@@ -587,6 +590,7 @@ class DataProcessingPipeline extends QScript {
     this.recal_file = outRecal
     this.tranches_file = outTranches
     this.rscript_file = outRscript
+    this.pedigree = pedigree
     this.tranche ++= List("100.0", "99.9", "99.0", "90.0")
     this.resource :+= new TaggedFile(hapmap, "known=false,training=true,truth=true,prior=15.0")
     this.resource :+= new TaggedFile(omni, "known=false,training=true,truth=true,prior=12.0")
