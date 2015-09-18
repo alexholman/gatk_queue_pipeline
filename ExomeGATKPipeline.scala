@@ -446,8 +446,8 @@ class DataProcessingPipeline extends QScript {
     this.num_threads = num_threads
     this.num_cpu_threads_per_data_thread = num_threads
     this.interval_padding = interval_padding
-//    this.pedigree = pedigree
-    this.pedigree :+= pedigree
+    this.pedigree = pedigree
+//    this.pedigree :+= pedigree
 //    this.pedigree = List(pedigree)
     this.pedigreeValidationType = org.broadinstitute.gatk.engine.samples.PedigreeValidationType.SILENT
   }
