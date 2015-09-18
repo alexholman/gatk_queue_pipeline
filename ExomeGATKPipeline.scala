@@ -123,9 +123,8 @@ class DataProcessingPipeline extends QScript {
   @Argument(doc="Run fully through GVCF to VCF creation and VCF recalibration", fullName="complete_run", shortName="complete", required=false)
   var complete_run: String = "true"
 
-  @Input(doc="Pedigree file", fullName="pedigree", shortName="ped", required=false)
-  var pedigree: File = _
-//  var pedigree: Seq[File] = Seq()
+  @Argument(doc="Pedigree file", fullName="pedigree", shortName="ped", required=false)
+  var pedigree: String = ""
 
   @Argument(doc="Amount of padding in bp to add to each interval", fullName="interval_padding", shortName="ip", required=false)
   var interval_padding: Int = 100
@@ -446,10 +445,12 @@ class DataProcessingPipeline extends QScript {
     this.num_threads = num_threads
     this.num_cpu_threads_per_data_thread = num_threads
     this.interval_padding = interval_padding
-    this.pedigree = pedigree
+//    this.pedigree = pedigree
 //    this.pedigree :+= pedigree
 //    this.pedigree = List(pedigree)
-    this.pedigreeValidationType = org.broadinstitute.gatk.engine.samples.PedigreeValidationType.SILENT
+//    this.pedigree ++= Seq(qscript.pedigree)
+    if (!qscript.pedigree.isEmpty) this.pedigree ++= Seq(qscript.pedigree)
+    if (!qscript.pedigree.isEmpty) this.pedigreeValidationType = org.broadinstitute.gatk.engine.samples.PedigreeValidationType.SILENT
   }
 
   trait SAMargs extends PicardBamFunction with ExternalCommonArgs {
@@ -576,7 +577,11 @@ class DataProcessingPipeline extends QScript {
     this.dbsnp = dbSNPvqsr
     this.R = reference
 //    this.annotation = Seq("GenotypeSummaries", "VariantType")
-    this.annotation = Seq("GenotypeSummaries", "VariantType", "InbreedingCoeff", "TransmissionDisequilibriumTest", "PossibleDeNovo")
+    if (!qscript.pedigree.isEmpty) { 
+		this.annotation = Seq("GenotypeSummaries", "VariantType", "InbreedingCoeff", "TransmissionDisequilibriumTest", "PossibleDeNovo")
+	}else{
+		this.annotation = Seq("GenotypeSummaries", "VariantType")
+	}
     this.isIntermediate = false
     this.analysisName = queueLogDir + outVcf + ".varannotator"
     this.jobName = queueLogDir + outVcf + ".varannotator"
@@ -590,7 +595,7 @@ class DataProcessingPipeline extends QScript {
     this.recal_file = outRecal
     this.tranches_file = outTranches
     this.rscript_file = outRscript
-    this.pedigree = pedigree
+//    this.pedigree = pedigree
     this.tranche ++= List("100.0", "99.9", "99.0", "90.0")
     this.resource :+= new TaggedFile(hapmap, "known=false,training=true,truth=true,prior=15.0")
     this.resource :+= new TaggedFile(omni, "known=false,training=true,truth=true,prior=12.0")
